@@ -2,6 +2,7 @@ body {
     background: #f7931a;
     color: white;
     text-align: center;
+    margin: 0;
 }
 h1 {
     font-weight: bold;
@@ -9,6 +10,35 @@ h1 {
     font-size: 666px;
     line-height: 0.9;
     font-family: sans;
+}
+h2 {
+    font-weight: bold;
+    margin:0;
+    font-size: 100px;
+    line-height: 0.9;
+    font-family: sans;
+}
+section {
+    padding: 24px;
+    margin: 24px 0;
+}
+#team {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+.team {
+    padding: 24px;
+    margin: 24px;
+    color: orange;
+    background: white;
+    box-sizing: border-box;
+    border-radius: 100%;
+}
+img {
+    width: 50%;
+    border-radius: 100%;
 }
 ul {
     margin:0;
@@ -21,4 +51,19 @@ i {
 
 a, a:visited {
     color: white;
+}
+
+.frame {
+    width: 124px;
+    height: 248px;
+    background: #333;
+    margin: 24px auto 0;
+    overflow: hidden;
+}
+iframe {
+    border: 20px solid black;
+    width: 1200px;
+    height: 2442px;
+    transform: scale(0.1);
+    transform-origin: top left;
 }
