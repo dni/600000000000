@@ -1,0 +1,11 @@
+<svg height="100%" width="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font:160% arial;font-weight:700;fill:white">
+    <g transform-origin="center">
+        <circle cy="50%"  cx="50%" r="50%" fill="#f7931a">
+            <animate attributeName="fill" from="black" to="orange" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <text x="29%" y="28%">600</text>
+        <text x="29%" y="48%">000</text>
+        <text x="29%" y="68%">000</text>
+        <text x="29%" y="88%">000</text>
+    </g>
+</svg>
