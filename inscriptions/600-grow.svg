@@ -8,6 +8,6 @@ style="font:160% arial;font-weight:900;fill:white"
         <text x="29%" y="48%">000</text>
         <text x="29%" y="68%">000</text>
         <text x="29%" y="88%">000</text>
-        <animateTransform attributeName="transform" type="scale" keyTimes="0;1" values="0;1" dur="3s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale" keyTimes="0;1" values="0;1" dur="2s" repeatCount="indefinite"/>
     </g>
 </svg>
