@@ -1,0 +1,9 @@
+<svg height="100%" width="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font:160% arial;font-weight:900;fill:white">
+    <rect width="100%" height="100%" fill="#f7931a">
+        <animate attributeName="rx" values="0;100;0" dur="1s" repeatCount="indefinite" />
+    </rect>
+    <text x="29%" y="28%">600</text>
+    <text x="29%" y="48%">000</text>
+    <text x="29%" y="68%">000</text>
+    <text x="29%" y="88%">000</text>
+</svg>
