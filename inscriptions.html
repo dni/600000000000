@@ -22,7 +22,9 @@
     </style>
 </head>
 <body>
-    <h2>600 000 000 000 ordinals</h2>
+    <h2>600 000 000 000 ordinals serie 1</h2>
+    <div id="inscriptions2"></div>
+    <h2>600 000 000 000 ordinals serie 2</h2>
     <div id="inscriptions">
         <img src="inscriptions/600-color.svg" alt="">
         <img src="inscriptions/600-spin.svg" alt="">
@@ -47,6 +49,25 @@
                     img.style.padding = "9px";
                     img.title = "inscriptions #" + line;
                     list.appendChild(img);
+                });
+            });
+        });
+        let list2 = document.getElementById("inscriptions2");
+        fetch('inscriptions/ord-colors2.txt', {
+            headers: {
+              'Content-Type': 'text/plain'
+            }
+        }).then(response => {
+            response.text().then((text) => {
+                let lines = text.split(/\r?\n|\r|\n/g);
+                lines.forEach(line => {
+                    if (!line) return;
+                    let img = document.createElement("img");
+                    img.src = "inscriptions/imgs2/600-" + line + ".svg";
+                    img.style.width = "200px";
+                    img.style.padding = "9px";
+                    img.title = "inscriptions #" + line;
+                    list2.appendChild(img);
                 });
             });
         });
