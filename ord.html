@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ordinal tester</title>
+</head>
+<body>
+
+    <h2>example of svg auto resizing</h2>
+    <img id="resize" style="width: 200px;" src="600.svg" alt="">
+    <script>
+        let width = 200;
+        let el = document.getElementById("resize")
+        setInterval(function(){
+            width = width > 300 ? 200 : width + 1;
+            el.style.width =  width + "px";
+        }, 10);
+    </script>
+
+</body>
+</html>

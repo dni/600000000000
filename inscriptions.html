@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>600 inscriptions</title>
+    <style>
+        body {
+            background: #f7931a;
+            color: white;
+            text-align: center;
+            margin: 0;
+        }
+        #inscriptions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>600 000 000 000 ordinals</h2>
+    <div id="inscriptions"></div>
+    <script>
+        let list = document.getElementById("inscriptions");
+        fetch('inscriptions/ord-colors.txt', {
+            headers: {
+              'Content-Type': 'text/plain'
+            }
+        }).then(response => {
+            response.text().then((text) => {
+                let lines = text.split(/\r?\n|\r|\n/g);
+                lines.forEach(line => {
+                    if (!line) return;
+                    let img = document.createElement("img");
+                    img.src = "inscriptions/imgs/600-" + line + ".svg";
+                    img.style.width = "200px";
+                    img.style.padding = "9px";
+                    img.title = "inscriptions #" + line;
+                    list.appendChild(img);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
