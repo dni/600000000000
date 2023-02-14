@@ -67,3 +67,17 @@ iframe {
     transform: scale(0.1);
     transform-origin: top left;
 }
+
+.ordinals img {
+    width: 200px;
+}
+
+.ordinals {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: #222;
+}
+.ordinal {
+    padding: 9px;
+}
