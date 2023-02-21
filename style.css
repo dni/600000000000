@@ -4,6 +4,9 @@ body {
     text-align: center;
     margin: 0;
 }
+caption {
+    text-align:center;
+}
 h1 {
     font-weight: bold;
     margin:0;
@@ -81,4 +84,8 @@ iframe {
 }
 .ordinal {
     padding: 9px;
+}
+
+.ordinals > a {
+    text-align: center;
 }

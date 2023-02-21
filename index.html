@@ -52,9 +52,63 @@
             </a>
             <p>Inscription: <a href="https://ordinals.com/inscription/a3562cdf24e93956e19fca60b79d4b34901b0d14709f701d614eef5f4ecdbaf7i0" target="_blank">#92849</a></p>
         </div>
+        <div class="ordinal">
+            <a href="https://ordinals.com/inscription/b00e1afdeaa52b4159d9d9edf78240df94d7dc05c4d3da7574955a91278bd1cei0" target="_blank">
+                <embed src="https://ordinals.com/content/b00e1afdeaa52b4159d9d9edf78240df94d7dc05c4d3da7574955a91278bd1cei0" alt="#92849" /></iframe>
+            </a>
+            <p>Inscription: <a href="https://ordinals.com/inscription/b00e1afdeaa52b4159d9d9edf78240df94d7dc05c4d3da7574955a91278bd1cei0" target="_blank">#106192</a></p>
+        </div>
     </section>
-    <h2><a href="https://liquid.network/assets/asset/bd1d3b1f10a3e1eb5ac2d332f118005f126f8c37fab490f8c8d84ddbd8c763c7">liquid asset</a></h2>
+    <h2>Serie 1</h2>
+    <section id="serie1" class="ordinals"></section>
+    <h2>Serie 2</h2>
+    <section id="serie2" class="ordinals"></section>
     <section>
+        <h2><a href="https://liquid.network/assets/asset/bd1d3b1f10a3e1eb5ac2d332f118005f126f8c37fab490f8c8d84ddbd8c763c7">liquid asset</a></h2>
     </section>
+    <script>
+        let render_ordinals = (text, list) => {
+            let lines = text.split(/\r?\n|\r|\n/g);
+            lines.forEach(line => {
+                if (!line) return;
+                let split = line.split(" ");
+                let link = document.createElement("a");
+                let div = document.createElement("div");
+                div.className = "ordinal";
+                let img = document.createElement("img");
+                let caption = document.createElement("figcaption");
+                link.target = "_blank"
+                link.href = "https://ordinals.com/inscription/" + split[1]
+                img.src = "https://ordinals.com/content/" + split[1]
+                img.style.width = "200px";
+                img.style.padding = "9px";
+                img.title = "#"+split[0];
+                caption.innerHTML = "#"+split[0];
+                link.appendChild(img);
+                link.appendChild(caption);
+                div.appendChild(link);
+                list.appendChild(link);
+            });
+        };
+
+        fetch('inscriptions/serie1.txt', {
+            headers: {
+              'Content-Type': 'text/plain'
+            }
+        }).then(response => {
+            response.text().then((text => {
+                render_ordinals(text, document.getElementById("serie1"));
+            }));
+        });
+        fetch('inscriptions/serie2.txt', {
+            headers: {
+              'Content-Type': 'text/plain'
+            }
+        }).then(response => {
+            response.text().then((text => {
+                render_ordinals(text, document.getElementById("serie2"));
+            }));
+        });
+    </script>
 </body>
 </html>
