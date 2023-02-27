@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>600 000 000 000</title>
+    <style>
+        body {margin: 0px}
+        canvas { width: 100%; height: 100%; position: fixed}
+    </style>
+</head>
+<body>
+  <canvas></canvas>
+  <script type="text/javascript">
+    var c = document.querySelector('canvas'),
+        ctx = c.getContext('2d'),
+        w = c.width = window.innerWidth,
+        h = c.height = window.innerHeight,
+        d = [],
+        l = [6, 0, 0, 0, 0, 0, 0, 0, 0],
+        fs = 42,
+        columns = w / fs,
+        m = Math,
+        mr = m.random;
+
+    setInterval(function() {
+      ctx.fillStyle = 'rgba(0,0,0,.06)';
+      ctx.fillRect(0, 0, w, h);
+      for (var i = 0; i < columns; i++) {
+        var step = d[i] * fs;
+        ctx.fillStyle = '#f90';
+        ctx.font = fs +"px Arial";
+        ctx.fillText(l[m.floor(mr() * l.length)], i * fs, step);
+        d[i] = d[i] ? d[i]+1 : 1;
+        if (step > h && mr() > .96) {
+          d[i] = 0;
+        }
+      }
+    }, 42);
+    </script>
+</body>
+</html>

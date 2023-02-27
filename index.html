@@ -69,6 +69,7 @@
     <script>
         let render_ordinals = (text, list) => {
             let lines = text.split(/\r?\n|\r|\n/g);
+            let json = [];
             lines.forEach(line => {
                 if (!line) return;
                 let split = line.split(" ");
@@ -88,7 +89,9 @@
                 link.appendChild(caption);
                 div.appendChild(link);
                 list.appendChild(link);
+                json.push({ id: split[1], meta: { name: "Inscription: #"+split[0] }});
             });
+            // console.log(JSON.stringify(json))
         };
 
         fetch('inscriptions/serie1.txt', {
