@@ -42,6 +42,7 @@ section {
 .team img {
     width: 210px;
 }
+.team a:visited,
 .team a {
     color: #333;
 }
