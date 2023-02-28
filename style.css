@@ -30,8 +30,6 @@ section {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-}
-.team {
     padding: 24px;
     margin: 24px;
     color: orange;
@@ -39,9 +37,13 @@ section {
     box-sizing: border-box;
     border-radius: 100%;
 }
-.team {
+.team img {
+    width: 210px;
+}
+.team a {
     color: #333;
 }
+
 img {
     width: 50%;
     border-radius: 100%;
