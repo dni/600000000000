@@ -30,6 +30,8 @@ section {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+}
+.team {
     padding: 24px;
     margin: 24px;
     color: orange;
