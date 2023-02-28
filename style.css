@@ -39,6 +39,9 @@ section {
     box-sizing: border-box;
     border-radius: 100%;
 }
+.team {
+    color: #333;
+}
 img {
     width: 50%;
     border-radius: 100%;
