@@ -7,10 +7,10 @@
     "oink": "b58fb628a4f913c6e38a379a48b272f39d4b28dd3df1b133e3133df2f8825160",
     "michael1011": "3dcc157a0304ec26ea131a0f4e576e2da67ff5c66980949c55bd7f0bb1b5efa1",
     "schluxxx": "7effeddee2224f2fa1a46e2f7cd67c284d3dcb7346a2c2de9363dd94418d3d4b",
-    "prophet": "60010e9c4f3849362e5c78c6af42651318a3811fdaa1eb2a517a19fdd30fa749"
+    "prophet": "d3df7b474995b774bfd3e89b2553fb6fbc5e42e63f8218aa4ab9886aa391b1d7"
   },
   "relays": {
-    "60010e9c4f3849362e5c78c6af42651318a3811fdaa1eb2a517a19fdd30fa749": [
+    "d3df7b474995b774bfd3e89b2553fb6fbc5e42e63f8218aa4ab9886aa391b1d7": [
       "wss://nostr.600.wtf"
     ]
   }
