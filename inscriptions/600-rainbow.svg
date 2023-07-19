@@ -1,0 +1,35 @@
+<svg height="100%" width="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font:160% arial;font-weight:700;fill:white">
+  <defs>
+     <linearGradient id="grd" x2="100%" y2="100%" >
+       <stop offset="0%" stop-color="#ff2400"></stop>
+       <stop offset="11%" stop-color="#e81d1d"></stop>
+       <stop offset="22%" stop-color="#e8b71d"></stop>
+       <stop offset="33%" stop-color="#e3e81d"></stop>
+       <stop offset="44%" stop-color="#1de840"></stop>
+       <stop offset="55%" stop-color="#2b1de8"></stop>
+       <stop offset="66%" stop-color="#ff2400"></stop>
+       <stop offset="77%" stop-color="#dd00f3"></stop>
+       <stop offset="88%" stop-color="#e8b71d"></stop>
+       <stop offset="100%" stop-color="#dd00f3"></stop>
+    </linearGradient>
+    <mask id="msk">
+      <g>
+        <circle cy="50%"  cx="50%" r="50%" fill="#f7931a"></circle>
+        <text x="29%" y="28%">600</text>
+        <text x="29%" y="48%">000</text>
+        <text x="29%" y="68%">000</text>
+        <text x="29%" y="88%">000</text>
+      </g>
+    </mask>
+  </defs>
+  <g style="mask: url(#msk)">
+    <rect x="-200%" width="300%" height="300%" fill='url(#grd)' >
+      <animateTransform
+        attributeName="transform"
+        type="translate"
+        values="0,0; 200,0; 0,0"
+        dur="66s"
+        repeatCount="indefinite" />
+    </rect>
+  </g>
+</svg>
