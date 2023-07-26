@@ -17,7 +17,7 @@ h1 {
 h2 {
     font-weight: bold;
     margin:0;
-    font-size: 100px;
+    font-size: 60px;
     line-height: 0.9;
     font-family: sans;
 }
@@ -37,6 +37,7 @@ section {
     color: orange;
     background: white;
     box-sizing: border-box;
+    /* border-radius: 130px; */
     border-radius: 100%;
 }
 .team img {
@@ -45,6 +46,17 @@ section {
 .team a:visited,
 .team a {
     color: #333;
+}
+
+p {
+  margin-top: 0px;
+}
+
+h3 {
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  font-size: 23px;
 }
 
 img {
