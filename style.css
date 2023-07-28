@@ -17,10 +17,17 @@ h1 {
 h2 {
     font-weight: bold;
     margin:0;
-    font-size: 60px;
+    font-size: 30px;
     line-height: 0.9;
     font-family: sans;
 }
+h3 {
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  font-size: 18px;
+}
+
 section {
     padding: 24px;
     margin: 24px 0;
@@ -30,6 +37,7 @@ section {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    margin: 24px auto;
 }
 .team {
     padding: 24px;
@@ -50,13 +58,6 @@ section {
 
 p {
   margin-top: 0px;
-}
-
-h3 {
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-  font-size: 23px;
 }
 
 img {
