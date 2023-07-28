@@ -46,7 +46,6 @@ section {
     color: orange;
     background: white;
     box-sizing: border-box;
-    /* border-radius: 130px; */
     border-radius: 100%;
 }
 .team img {
@@ -61,9 +60,11 @@ p {
   margin-top: 0px;
 }
 
-img {
-    width: 50%;
+#team img {
     border-radius: 100%;
+}
+#memes img {
+    width: 50%;
 }
 ul {
     margin:0;
