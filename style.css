@@ -37,6 +37,7 @@ section {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    max-width: 1400px;
     margin: 24px auto;
 }
 .team {
