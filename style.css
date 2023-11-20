@@ -64,7 +64,14 @@ p {
     border-radius: 100%;
 }
 #memes img {
-    width: 50%;
+    width: 25%;
+    padding: 21px;
+}
+#memes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
 }
 ul {
     margin:0;
