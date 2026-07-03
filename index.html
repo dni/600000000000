@@ -51,7 +51,7 @@
                     let a = document.createElement("a");
                     a.href = `https://njump.me/${member.nostr}`;
                     a.target = "_blank";
-                    a.innerHTML = "nostr";
+                    a.textContent = member.name === "Toni China" ? "WAT NOSTR?" : "nostr";
                     img.src = member.img;
                     headline.innerHTML = member.name;
                     subline.innerHTML = member.role;

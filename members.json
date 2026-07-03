@@ -4,7 +4,7 @@
         {
             "name": "dni",
             "role": "CEO",
-            "img": "img/dni2.jpg",
+            "img": "img/characters/dni.jpg",
             "nostr": "dni@600.wtf"
         },
         {
@@ -16,13 +16,13 @@
         {
             "name": "michael1011",
             "role": "CTO",
-            "img": "img/characters/michael1011.jpg",
+            "img": "img/characters/michi.jpg",
             "nostr": "m@bol.tz"
         },
         {
             "name": "sat",
             "role": "CMO",
-            "img": "img/sat_superskull.jpeg",
+            "img": "img/characters/sat.jpg",
             "nostr": "sat@600.wtf"
         },
         {
@@ -146,14 +146,14 @@
         {
             "name": "tal",
             "role": "CNO",
-            "img": "img/600.png",
+            "img": "img/characters/tal.jpg",
             "nostr": "tal@600.wtf"
         },
         {
             "name": "bk",
             "nickname": "bitkarrot",
             "role": "CUO",
-            "img": "img/600.png",
+            "img": "img/characters/bk.jpg",
             "nostr": "Bk@600.wtf"
         },
         {
@@ -166,20 +166,26 @@
         {
             "name": "mtoshi",
             "role": "CHR",
-            "img": "img/600.png",
+            "img": "img/characters/mtoshi.png",
             "nostr": "mtoshi@600.wtf"
         },
         {
             "name": "morgs",
             "role": "CFR",
-            "img": "img/600.png",
+            "img": "img/characters/morgs.jpg",
             "nostr": "morgs@600.wtf"
         },
         {
             "name": "cuddy",
             "role": "CLO",
-            "img": "img/600.png",
+            "img": "img/characters/cuddy.jpg",
             "nostr": "cuddy@600.wtf"
+        },
+        {
+            "name": "Toni China",
+            "role": "CCN",
+            "img": "img/characters/tonichina.jpg",
+            "nostr": "tonychina@600.wtf"
         }
     ]
 }
