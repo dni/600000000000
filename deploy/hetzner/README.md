@@ -37,19 +37,28 @@ Build twice and require identical archive SHA-256 before deployment.
 
 ## Deployment
 
-Deployment requires an independently reviewed exact commit and exact hashes supplied by the operator:
+Deployment requires an independently reviewed exact commit and exact hashes supplied by the operator. Materialize the runner itself from the reviewed Git object and verify it before execution; do not execute the mutable worktree copy:
 
 ```bash
-EXPECTED_COMMIT=<full-reviewed-sha> \
-EXPECTED_ARCHIVE_SHA256=<sha256> \
-EXPECTED_INSTALLER_SHA256=<sha256> \
+COMMIT=<full-reviewed-sha>
+RUNNER="$HOME/.cache/600-wtf-deploy/deploy-$COMMIT.sh"
+mkdir -p "$(dirname "$RUNNER")"
+git show "$COMMIT:deploy/hetzner/deploy.sh" > "$RUNNER"
+chmod 700 "$RUNNER"
+printf '%s  %s\n' <reviewed-deployer-sha256> "$RUNNER" | sha256sum -c -
+
+SOURCE_REPO="$PWD" \
+EXPECTED_COMMIT="$COMMIT" \
+EXPECTED_ARCHIVE_SHA256=<reviewed-release-sha256> \
+EXPECTED_BUILDER_SHA256=<reviewed-builder-sha256> \
+EXPECTED_INSTALLER_SHA256=<reviewed-installer-sha256> \
 HETZNER_PASS_FILE=/tmp/hetzner-deploy-pass.secret \
 SSH_ASKPASS=/tmp/hetzner-askpass.sh \
-./deploy/hetzner/deploy.sh
+bash "$RUNNER"
 ```
 
-The wrapper refuses a dirty or mismatched worktree, rebuilds the archive, verifies all hashes, uploads to a unique private directory, rehashes the remote upload, and runs the atomic installer without `sudo`.
+The reviewed runner ignores mutable worktree bytes. It materializes `EXPECTED_COMMIT` through `git archive` into a private snapshot, verifies the builder and installer before their first execution, rebuilds and validates the archive before exporting credential paths, uploads to a unique private directory, rehashes the remote upload, and runs the atomic installer without `sudo`.
 
 ## DNS activation
 
-The static tree may be installed before DNS changes. Activate the Caddy fragment transactionally, verify the origin with `curl --resolve 600.wtf:443:<origin-ip>`, then change the authoritative DigitalOcean `A` record for `600.wtf` only after origin HTTPS, NIP-05 JSON, CORS, website assets, and rollback have passed.
+The static tree may be installed before DNS changes. Validate and activate the Caddy fragment transactionally only after its pinned target tree passes. Because Caddy cannot obtain a publicly trusted `600.wtf` certificate while authoritative DNS still points at the old host, update the authoritative DigitalOcean apex `A` record only after the filesystem/Caddy transaction passes; then wait for certificate issuance and verify public HTTPS, NIP-05 JSON, CORS, website assets, join regression probes, and rollback readiness.
