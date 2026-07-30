@@ -102,6 +102,27 @@
         }
         .charge { color: var(--n-gold); }
         .card-x { font-family: Consolas, monospace; font-size: 0.62em; opacity: 0.45; overflow-wrap: anywhere; margin: 6px 0; }
+        .proto-card {
+            width: 210px;
+            background: var(--n-soot);
+            border: 1px solid rgba(255, 247, 236, 0.18);
+            border-left: 3px solid var(--aff, var(--n-orange));
+            padding: 10px 8px 8px;
+            position: relative;
+        }
+        .proto-top { display: flex; justify-content: space-between; align-items: baseline; }
+        .proto-cost { font-family: Impact, sans-serif; font-size: 1.5em; color: var(--aff, var(--n-orange)); }
+        .proto-aff { font-size: 0.7em; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8; }
+        .proto-name { font-family: Impact, sans-serif; text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 2px; }
+        .proto-type { font-size: 0.72em; opacity: 0.7; margin-bottom: 6px; }
+        .proto-text { font-size: 0.76em; opacity: 0.85; min-height: 44px; }
+        .proto-count {
+            position: absolute; top: 8px; right: 8px;
+            font-family: Impact, sans-serif;
+            background: var(--n-gold); color: var(--n-soot);
+            padding: 0 6px; font-size: 0.85em;
+        }
+        .proto-card .card-meta { margin-top: 8px; }
         .banknote {
             width: 210px;
             background:
@@ -227,12 +248,16 @@
         // fastplay starters 600 sats -> 5 fixed cards at 120, no change
         const BOOSTER_MSAT = 210000;
         const CARD_MSAT = 60000;
-        const STARTER_MSAT = 600000;
-        const STARTER_CARD_MSAT = 120000;
         const AFFINITIES = ['P', 'B', 'K', 'S', 'T'];
-        const STARTERS = {
-            signal: { label: 'SIGNAL', from: 0 },
-            stone: { label: 'STONE', from: 5 }
+        // fastplay starters are not invented here: starters.json is
+        // derived from the E1 rulebook's recommended-first-deck shape
+        // over the real e1-cards.json pool, in collector-number order
+        // (see its _derivation field). 40 cards x 15 sats = 600 sats,
+        // priced to the sat, no change.
+        const STARTER_CARD_MSAT = 15000;
+        const AFFINITY_COLORS = {
+            Signal: '#f7931a', Power: '#ff6a00', Bitcoin: '#f3c244',
+            Keys: '#ffa733', Timelock: '#d97a00'
         };
 
         const state = { items: [], events: [], deck: [], serial: 0 };
@@ -339,23 +364,60 @@
             toast('Booster opened - 3 cards, change as a banknote');
         };
 
-        // fastplay: two fixed five-card decks, priced to the sat - buy
-        // both, hand one over, duel. No randomness in a starter.
+        // fastplay: two fixed 40-card decks straight from the rulebook
+        // formula over the real E1 pool. One genesis per physical card;
+        // x is the sha256 of the card's locked text content (the real
+        // mint swaps in the artwork blob hash). No randomness in a
+        // starter - buy both, hand one over, duel.
+        let starterData = null;
+        const loadStarters = async () => {
+            if (starterData) return starterData;
+            starterData = (await (await fetch('starters.json')).json()).starters;
+            return starterData;
+        };
+
         const openStarter = async key => {
             if (MINT_URL) { toast('Live mint not wired yet'); return; }
-            if (!state.deck.length) await loadDeck();
-            const starter = STARTERS[key];
-            const picks = state.deck.slice(starter.from, starter.from + 5);
-            for (const tpl of picks) {
-                await mintCard(tpl, STARTER_CARD_MSAT, `FASTPLAY ${starter.label}`);
+            const starter = (await loadStarters())[key];
+            const set = `FASTPLAY ${starter.label}`;
+            for (const card of starter.deck) {
+                const canonical = JSON.stringify({
+                    id: card.id, name: card.name, type: card.type,
+                    cost: card.cost, affinity: card.affinity, text: card.text
+                });
+                const x = await sha256hex(new TextEncoder().encode(canonical));
+                for (let i = 0; i < card.count; i++) {
+                    state.serial += 1;
+                    const k1 = randomHex(32);
+                    const birth = await sha256hex(new TextEncoder().encode(k1));
+                    const number = String(state.serial).padStart(3, '0');
+                    const genesis = await nostrEvent(
+                        7600,
+                        [
+                            ['x', x],
+                            ['birth', birth],
+                            ['amount', String(STARTER_CARD_MSAT)],
+                            ['lnurl', 'lnurlw://mint.600.wtf/w'],
+                            ['t', '600b']
+                        ],
+                        canonical
+                    );
+                    pushEvent(genesis);
+                    state.items.push({
+                        id: genesis.id, kind: 'proto', k1,
+                        valueMsat: STARTER_CARD_MSAT,
+                        asset: { ...card, x, set, number },
+                        status: 'held', selected: false
+                    });
+                }
             }
             render();
-            toast(`Starter ${starter.label} - five cards, ready to duel`);
+            toast(`Starter ${starter.label} - 40 cards, ready to duel`);
         };
 
         const meltItem = async item => {
             item.status = 'melted';
-            if (item.kind === 'card') {
+            if (item.kind !== 'note') {
                 pushEvent(await nostrEvent(7603, [
                     ['e', item.id, 'wss://relay.600.wtf', 'genesis'],
                     ['e', state.events[0]?.id || item.id, 'wss://relay.600.wtf', 'prev']
@@ -392,7 +454,7 @@
             document.getElementById('picker').close();
             if (!item) return;
             item.status = 'sent';
-            if (item.kind === 'card') {
+            if (item.kind !== 'note') {
                 pushEvent(await nostrEvent(7601, [
                     ['e', item.id, 'wss://relay.600.wtf', 'genesis'],
                     ['e', state.events[0]?.id || item.id, 'wss://relay.600.wtf', 'prev'],
@@ -416,10 +478,52 @@
             toast('Merged - one note, same sats, fresh secret');
         };
 
+        const esc = s =>
+            String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
         const render = () => {
             const box = document.getElementById('items');
             box.innerHTML = '';
-            state.items.filter(i => i.status !== 'sent').forEach(item => {
+            // starter cards render grouped: one tile per unique card, a
+            // count badge for the copies (16x a Basic Resource is one
+            // tile, not sixteen) - every copy is still its own asset
+            const groups = new Map();
+            state.items
+                .filter(i => i.kind === 'proto' && i.status === 'held')
+                .forEach(i => {
+                    const key = `${i.asset.set}|${i.asset.id}`;
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push(i);
+                });
+            groups.forEach(instances => {
+                const a = instances[0].asset;
+                const el = document.createElement('div');
+                el.className = 'proto-card';
+                el.style.setProperty('--aff', AFFINITY_COLORS[a.affinity] || 'var(--n-orange)');
+                el.innerHTML = `
+                    ${instances.length > 1 ? `<span class="proto-count">×${instances.length}</span>` : ''}
+                    <div class="proto-top"><span class="proto-cost">${esc(a.cost) || '0'}</span><span class="proto-aff">${esc(a.affinity)}</span></div>
+                    <div class="proto-name">${esc(a.name)}</div>
+                    <div class="proto-type">${esc(a.type)} · ${esc(a.id)} · ${esc(a.rarity)}</div>
+                    <div class="proto-text">${esc(a.text)}</div>
+                    <div class="card-meta">
+                        <span>${esc(a.set)}</span>
+                        <span class="charge">${sats(instances[0].valueMsat)} sats each</span>
+                    </div>`;
+                const actions = document.createElement('div');
+                actions.className = 'item-actions';
+                const send = document.createElement('button');
+                send.textContent = 'Send';
+                send.onclick = () => openPicker(instances[0]);
+                const melt = document.createElement('button');
+                melt.className = 'quiet';
+                melt.textContent = 'Melt';
+                melt.onclick = () => meltItem(instances[0]);
+                actions.append(send, melt);
+                el.appendChild(actions);
+                box.appendChild(el);
+            });
+            state.items.filter(i => i.status !== 'sent' && i.kind !== 'proto').forEach(item => {
                 if (item.kind === 'card') {
                     const el = document.createElement('div');
                     el.className = 'tcg-card' + (item.status === 'melted' ? ' melted' : '');

@@ -33,22 +33,33 @@ test.describe("nord demo", () => {
     expect(errors).toEqual([]);
   });
 
-  test("two fixed starter decks mint five cards each for fastplay", async ({ page }) => {
+  test("two fixed starter decks mint forty real E1 cards each", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(String(error)));
 
     await page.goto("/nord.html");
     await page.getByRole("button", { name: /starter signal/i }).click();
-    await expect(page.locator(".tcg-card")).toHaveCount(5);
-    await expect(page.locator(".evt-kind", { hasText: "GENESIS" })).toHaveCount(5);
+    // 40 cards, 25 uniques rendered as grouped tiles - 16x the Basic
+    // Resource is one tile with a count badge, not sixteen tiles
+    await expect(page.locator(".proto-card")).toHaveCount(25);
+    await expect(page.locator(".evt-kind", { hasText: "GENESIS" })).toHaveCount(40);
+    await expect(page.locator(".proto-count").first()).toHaveText("×16");
+    await expect(page.locator("#total")).toHaveText("600 SATS HELD");
 
-    // starters are deterministic and disjoint: stone adds five different cards
+    // starters are deterministic and disjoint: stone is the Power deck
     await page.getByRole("button", { name: /starter stone/i }).click();
-    await expect(page.locator(".tcg-card")).toHaveCount(10);
-    await expect(page.locator(".evt-kind", { hasText: "GENESIS" })).toHaveCount(10);
+    await expect(page.locator(".proto-card")).toHaveCount(50);
+    await expect(page.locator(".evt-kind", { hasText: "GENESIS" })).toHaveCount(80);
 
-    // two starters, priced to the sat: 2 x 600, no change banknotes
+    // priced to the sat: 2 x (40 x 15) = 1 200, no change banknotes
     await expect(page.locator(".banknote")).toHaveCount(0);
+    await expect(page.locator("#total")).toHaveText("1 200 SATS HELD");
+
+    // melt one single-copy card: its 15 sats come home as a banknote,
+    // total conserved
+    await page.locator(".proto-card button", { hasText: "Melt" }).last().click();
+    await expect(page.locator(".banknote")).toHaveCount(1);
+    await expect(page.locator(".note-denom")).toHaveText("15");
     await expect(page.locator("#total")).toHaveText("1 200 SATS HELD");
 
     expect(errors).toEqual([]);
