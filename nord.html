@@ -187,7 +187,9 @@
         <div class="nord-cols">
             <section>
                 <div class="viewer-bar">
-                    <button id="booster">Open booster · 21 000 sats</button>
+                    <button id="booster">Open booster · 210 sats</button>
+                    <button id="starter-signal" class="quiet" title="Two starters = one fastplay duel">Starter Signal · 600 sats</button>
+                    <button id="starter-stone" class="quiet" title="Two starters = one fastplay duel">Starter Stone · 600 sats</button>
                     <button id="combine" class="quiet" hidden>Combine selected</button>
                     <span class="viewer-total" id="total">0 SATS HELD</span>
                 </div>
@@ -221,9 +223,17 @@
         // demo mint identity - a real mint signs events with x(mintPubkey)
         // (NORD-01); this page stubs signatures and says so on every event
         const MINT_PUBKEY = '600b'.repeat(16);
-        const BOOSTER_MSAT = 21000000;
-        const CARD_MSAT = 6000000;
+        // economy: booster 210 sats -> 3 cards at 60 + 30 change;
+        // fastplay starters 600 sats -> 5 fixed cards at 120, no change
+        const BOOSTER_MSAT = 210000;
+        const CARD_MSAT = 60000;
+        const STARTER_MSAT = 600000;
+        const STARTER_CARD_MSAT = 120000;
         const AFFINITIES = ['P', 'B', 'K', 'S', 'T'];
+        const STARTERS = {
+            signal: { label: 'SIGNAL', from: 0 },
+            stone: { label: 'STONE', from: 5 }
+        };
 
         const state = { items: [], events: [], deck: [], serial: 0 };
 
@@ -292,7 +302,7 @@
             );
         };
 
-        const mintCard = async tpl => {
+        const mintCard = async (tpl, msat, set) => {
             state.serial += 1;
             const k1 = randomHex(32);
             const birth = await sha256hex(new TextEncoder().encode(k1));
@@ -303,16 +313,16 @@
                     ['x', tpl.x],
                     ['url', tpl.img],
                     ['birth', birth],
-                    ['amount', String(CARD_MSAT)],
+                    ['amount', String(msat)],
                     ['lnurl', 'lnurlw://mint.600.wtf/w'],
                     ['t', '600b']
                 ],
-                JSON.stringify({ name: tpl.name, set: 'COUNCIL E0', number, affinity: tpl.affinity, role: tpl.role })
+                JSON.stringify({ name: tpl.name, set, number, affinity: tpl.affinity, role: tpl.role })
             );
             pushEvent(genesis);
             state.items.push({
-                id: genesis.id, kind: 'card', k1, valueMsat: CARD_MSAT,
-                asset: { ...tpl, number }, status: 'held', selected: false
+                id: genesis.id, kind: 'card', k1, valueMsat: msat,
+                asset: { ...tpl, number, set }, status: 'held', selected: false
             });
         };
 
@@ -320,13 +330,27 @@
             if (MINT_URL) { toast('Live mint not wired yet'); return; }
             if (!state.deck.length) await loadDeck();
             const picks = [...state.deck].sort(() => Math.random() - 0.5).slice(0, 3);
-            for (const tpl of picks) await mintCard(tpl);
+            for (const tpl of picks) await mintCard(tpl, CARD_MSAT, 'COUNCIL E0');
             state.items.push({
                 id: randomHex(8), kind: 'note', k1: randomHex(32),
                 valueMsat: BOOSTER_MSAT - 3 * CARD_MSAT, status: 'held', selected: false
             });
             render();
             toast('Booster opened - 3 cards, change as a banknote');
+        };
+
+        // fastplay: two fixed five-card decks, priced to the sat - buy
+        // both, hand one over, duel. No randomness in a starter.
+        const openStarter = async key => {
+            if (MINT_URL) { toast('Live mint not wired yet'); return; }
+            if (!state.deck.length) await loadDeck();
+            const starter = STARTERS[key];
+            const picks = state.deck.slice(starter.from, starter.from + 5);
+            for (const tpl of picks) {
+                await mintCard(tpl, STARTER_CARD_MSAT, `FASTPLAY ${starter.label}`);
+            }
+            render();
+            toast(`Starter ${starter.label} - five cards, ready to duel`);
         };
 
         const meltItem = async item => {
@@ -405,7 +429,7 @@
                         <div class="card-name">${item.asset.name}</div>
                         <div class="card-meta">
                             <span class="affinity">${item.asset.affinity}</span>
-                            <span>COUNCIL E0 · ${item.asset.number}</span>
+                            <span>${item.asset.set} · ${item.asset.number}</span>
                             <span class="charge">${item.status === 'melted' ? '0' : sats(item.valueMsat)} sats</span>
                         </div>
                         <div class="card-x" title="sha256 of the artwork bytes">x: ${item.asset.x.slice(0, 24)}…</div>`;
@@ -455,6 +479,8 @@
         };
 
         document.getElementById('booster').onclick = openBooster;
+        document.getElementById('starter-signal').onclick = () => openStarter('signal');
+        document.getElementById('starter-stone').onclick = () => openStarter('stone');
         document.getElementById('combine').onclick = combine;
         document.getElementById('picker-cancel').onclick = () => document.getElementById('picker').close();
         loadDeck().then(render);
