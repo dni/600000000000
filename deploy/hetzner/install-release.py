@@ -408,6 +408,7 @@ def main() -> int:
     parser.add_argument("--install", action="store_true")
     parser.add_argument("--expected-source-commit", required=True)
     parser.add_argument("--expected-archive-sha256")
+    parser.add_argument("--expected-release-sha256")
     args = parser.parse_args()
     try:
         if bool(args.validate_only) == bool(args.install):
@@ -421,6 +422,12 @@ def main() -> int:
         elif args.install:
             raise RuntimeError("install requires --expected-archive-sha256")
         files, release = read_archive_bytes(archive_bytes)
+        release_bytes = files["RELEASE.json"]
+        if args.expected_release_sha256:
+            if not HASH_RE.fullmatch(args.expected_release_sha256) or digest(release_bytes) != args.expected_release_sha256:
+                raise RuntimeError("release manifest SHA-256 mismatch")
+        elif args.install:
+            raise RuntimeError("install requires --expected-release-sha256")
         if release["sourceCommit"] != args.expected_source_commit:
             raise RuntimeError("release source commit mismatch")
         if args.validate_only:

@@ -83,7 +83,8 @@ def build(root: Path, output: Path, source_commit: str) -> dict[str, object]:
         "sourceCommit": source_commit,
         "files": {name: digest(data) for name, data in sorted(files.items())},
     }
-    files["RELEASE.json"] = (json.dumps(release, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    release_bytes = (json.dumps(release, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    files["RELEASE.json"] = release_bytes
 
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix=f".{output.name}.", dir=output.parent, delete=False) as temporary:
@@ -96,7 +97,12 @@ def build(root: Path, output: Path, source_commit: str) -> dict[str, object]:
     temporary_path.chmod(0o600)
     temporary_path.replace(output)
     archive_sha256 = digest(output.read_bytes())
-    return {"archiveSha256": archive_sha256, "files": len(files), "sourceCommit": source_commit}
+    return {
+        "archiveSha256": archive_sha256,
+        "files": len(files),
+        "releaseSha256": digest(release_bytes),
+        "sourceCommit": source_commit,
+    }
 
 
 def main() -> int:

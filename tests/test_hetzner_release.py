@@ -82,7 +82,7 @@ class HetznerReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as td:
             first = Path(td) / "first.tar.gz"
             second = Path(td) / "second.tar.gz"
-            self.build(first)
+            first_result = self.build(first)
             self.build(second)
             self.assertEqual(sha256(first), sha256(second))
 
@@ -107,7 +107,10 @@ class HetznerReleaseTests(unittest.TestCase):
                 release_file = archive.extractfile("RELEASE.json")
                 self.assertIsNotNone(release_file)
                 assert release_file is not None
-                release = json.load(release_file)
+                release_bytes = release_file.read()
+                release = json.loads(release_bytes)
+                build_result = json.loads(first_result.stdout)
+                self.assertEqual(build_result["releaseSha256"], hashlib.sha256(release_bytes).hexdigest())
                 self.assertEqual(release["schema"], "600-wtf-static-release/v1")
                 self.assertEqual(release["sourceCommit"], SOURCE_COMMIT)
                 self.assertEqual(release["files"][".well-known/nostr.json"], sha256(ROOT / ".well-known/nostr.json"))
@@ -127,6 +130,19 @@ class HetznerReleaseTests(unittest.TestCase):
                 SOURCE_COMMIT,
             )
             self.assertIn("validated", result.stdout)
+
+            wrong_manifest = run(
+                str(INSTALLER),
+                "--validate-only",
+                str(release),
+                "--expected-source-commit",
+                SOURCE_COMMIT,
+                "--expected-release-sha256",
+                "0" * 64,
+                check=False,
+            )
+            self.assertNotEqual(wrong_manifest.returncode, 0)
+            self.assertIn("release manifest SHA-256 mismatch", wrong_manifest.stderr)
 
             tampered = Path(td) / "tampered.tar.gz"
             with tarfile.open(release, "r:gz") as source, tarfile.open(tampered, "w:gz") as destination:
@@ -283,6 +299,7 @@ class HetznerReleaseTests(unittest.TestCase):
         source = DEPLOYER.read_text()
         self.assertIn('${EXPECTED_COMMIT:?', source)
         self.assertIn('${EXPECTED_ARCHIVE_SHA256:?', source)
+        self.assertIn('${EXPECTED_RELEASE_SHA256:?', source)
         self.assertIn('${EXPECTED_BUILDER_SHA256:?', source)
         self.assertIn('${EXPECTED_INSTALLER_SHA256:?', source)
         self.assertIn('git -C "$SOURCE_REPO" archive "$EXPECTED_COMMIT"', source)
@@ -291,6 +308,7 @@ class HetznerReleaseTests(unittest.TestCase):
         self.assertNotIn('git status --porcelain', source)
         self.assertIn('--expected-source-commit', source)
         self.assertIn('--expected-archive-sha256', source)
+        self.assertIn('--expected-release-sha256', source)
         self.assertNotIn('sudo ', source)
         builder_hash_gate = source.index('[[ "$SNAPSHOT_BUILDER_SHA256" == "$EXPECTED_BUILDER_SHA256" ]]')
         builder_execution = source.index('python3 "$BUILDER"')
@@ -332,6 +350,11 @@ class HetznerReleaseTests(unittest.TestCase):
                 capture_output=True,
             )
             archive_sha = sha256(expected_archive)
+            with tarfile.open(expected_archive, "r:gz") as built_archive:
+                release_member = built_archive.extractfile("RELEASE.json")
+                self.assertIsNotNone(release_member)
+                assert release_member is not None
+                release_sha = hashlib.sha256(release_member.read()).hexdigest()
             builder.write_text("#!/usr/bin/env python3\nraise SystemExit('WORKTREE_BUILDER_EXECUTED')\n")
             subprocess.run(["git", "-C", repo, "update-index", "--assume-unchanged", "deploy/hetzner/build-release.py"], check=True)
             self.assertEqual(subprocess.check_output(["git", "-C", repo, "status", "--porcelain"], text=True), "")
@@ -343,6 +366,7 @@ class HetznerReleaseTests(unittest.TestCase):
                 "SOURCE_REPO": str(repo),
                 "EXPECTED_COMMIT": commit,
                 "EXPECTED_ARCHIVE_SHA256": archive_sha,
+                "EXPECTED_RELEASE_SHA256": release_sha,
                 "EXPECTED_BUILDER_SHA256": builder_sha,
                 "EXPECTED_INSTALLER_SHA256": installer_sha,
                 "PREPARE_ONLY": "1",

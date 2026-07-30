@@ -30,7 +30,9 @@ python3 deploy/hetzner/build-release.py \
 
 python3 deploy/hetzner/install-release.py \
   --validate-only dist/600-wtf-release.tar.gz \
-  --expected-source-commit "$COMMIT"
+  --expected-source-commit "$COMMIT" \
+  --expected-archive-sha256 <reviewed-archive-sha256> \
+  --expected-release-sha256 <reviewed-RELEASE.json-sha256>
 ```
 
 Build twice and require identical archive SHA-256 before deployment.
@@ -49,7 +51,8 @@ printf '%s  %s\n' <reviewed-deployer-sha256> "$RUNNER" | sha256sum -c -
 
 SOURCE_REPO="$PWD" \
 EXPECTED_COMMIT="$COMMIT" \
-EXPECTED_ARCHIVE_SHA256=<reviewed-release-sha256> \
+EXPECTED_ARCHIVE_SHA256=<reviewed-archive-sha256> \
+EXPECTED_RELEASE_SHA256=<reviewed-RELEASE.json-sha256> \
 EXPECTED_BUILDER_SHA256=<reviewed-builder-sha256> \
 EXPECTED_INSTALLER_SHA256=<reviewed-installer-sha256> \
 HETZNER_PASS_FILE=/tmp/hetzner-deploy-pass.secret \

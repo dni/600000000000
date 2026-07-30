@@ -3,11 +3,13 @@ set -Eeuo pipefail
 umask 077
 
 : "${EXPECTED_COMMIT:?Set the independently reviewed full commit SHA}"
-: "${EXPECTED_ARCHIVE_SHA256:?Set the independently reproduced release SHA-256}"
+: "${EXPECTED_ARCHIVE_SHA256:?Set the independently reproduced archive SHA-256}"
+: "${EXPECTED_RELEASE_SHA256:?Set the independently reproduced RELEASE.json SHA-256}"
 : "${EXPECTED_BUILDER_SHA256:?Set the independently reviewed builder SHA-256}"
 : "${EXPECTED_INSTALLER_SHA256:?Set the independently reviewed installer SHA-256}"
 [[ "$EXPECTED_COMMIT" =~ ^[0-9a-f]{40}$ ]]
 [[ "$EXPECTED_ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+[[ "$EXPECTED_RELEASE_SHA256" =~ ^[0-9a-f]{64}$ ]]
 [[ "$EXPECTED_BUILDER_SHA256" =~ ^[0-9a-f]{64}$ ]]
 [[ "$EXPECTED_INSTALLER_SHA256" =~ ^[0-9a-f]{64}$ ]]
 
@@ -46,11 +48,11 @@ ARCHIVE="$SOURCE_REPO/dist/600-wtf-release.tar.gz"
 python3 "$BUILDER" --root "$SNAPSHOT" --output "$ARCHIVE" --source-commit "$EXPECTED_COMMIT" >/dev/null
 ARCHIVE_SHA256=$(sha256sum "$ARCHIVE" | cut -d ' ' -f1)
 [[ "$ARCHIVE_SHA256" == "$EXPECTED_ARCHIVE_SHA256" ]] || { echo 'release archive drifted' >&2; exit 1; }
-python3 "$INSTALLER" --validate-only "$ARCHIVE" --expected-source-commit "$EXPECTED_COMMIT" --expected-archive-sha256 "$EXPECTED_ARCHIVE_SHA256"
+python3 "$INSTALLER" --validate-only "$ARCHIVE" --expected-source-commit "$EXPECTED_COMMIT" --expected-archive-sha256 "$EXPECTED_ARCHIVE_SHA256" --expected-release-sha256 "$EXPECTED_RELEASE_SHA256"
 
 if [[ ${PREPARE_ONLY:-0} == 1 ]]; then
-  printf 'PREPARE_ONLY_OK\nSOURCE_COMMIT=%s\nARCHIVE_SHA256=%s\nBUILDER_SHA256=%s\nINSTALLER_SHA256=%s\n' \
-    "$EXPECTED_COMMIT" "$ARCHIVE_SHA256" "$SNAPSHOT_BUILDER_SHA256" "$SNAPSHOT_INSTALLER_SHA256"
+  printf 'PREPARE_ONLY_OK\nSOURCE_COMMIT=%s\nARCHIVE_SHA256=%s\nRELEASE_SHA256=%s\nBUILDER_SHA256=%s\nINSTALLER_SHA256=%s\n' \
+    "$EXPECTED_COMMIT" "$ARCHIVE_SHA256" "$EXPECTED_RELEASE_SHA256" "$SNAPSHOT_BUILDER_SHA256" "$SNAPSHOT_INSTALLER_SHA256"
   exit 0
 fi
 
@@ -74,10 +76,10 @@ chmod 700 /home/flx/backups/600-wtf
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 LOG=/home/flx/backups/600-wtf/600-wtf-deploy-$STAMP.log
 ssh "${SSH_OPTS[@]}" "$HOST" \
-  "python3 '$UPLOAD_DIR/install-release.py' --install '$UPLOAD_DIR/600-wtf-release.tar.gz' --expected-source-commit '$EXPECTED_COMMIT' --expected-archive-sha256 '$ARCHIVE_SHA256'" \
+  "python3 '$UPLOAD_DIR/install-release.py' --install '$UPLOAD_DIR/600-wtf-release.tar.gz' --expected-source-commit '$EXPECTED_COMMIT' --expected-archive-sha256 '$ARCHIVE_SHA256' --expected-release-sha256 '$EXPECTED_RELEASE_SHA256'" \
   | tee "$LOG"
 chmod 600 "$LOG"
 sha256sum "$LOG" > "$LOG.sha256"
 chmod 600 "$LOG.sha256"
-printf 'DEPLOY_LOG=%s\nSOURCE_COMMIT=%s\nARCHIVE_SHA256=%s\nBUILDER_SHA256=%s\nINSTALLER_SHA256=%s\n' \
-  "$LOG" "$EXPECTED_COMMIT" "$ARCHIVE_SHA256" "$SNAPSHOT_BUILDER_SHA256" "$SNAPSHOT_INSTALLER_SHA256"
+printf 'DEPLOY_LOG=%s\nSOURCE_COMMIT=%s\nARCHIVE_SHA256=%s\nRELEASE_SHA256=%s\nBUILDER_SHA256=%s\nINSTALLER_SHA256=%s\n' \
+  "$LOG" "$EXPECTED_COMMIT" "$ARCHIVE_SHA256" "$EXPECTED_RELEASE_SHA256" "$SNAPSHOT_BUILDER_SHA256" "$SNAPSHOT_INSTALLER_SHA256"
