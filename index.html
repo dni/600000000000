@@ -34,7 +34,105 @@
     </footer>
     </div>
     <script>
-        // render mebers
+        // ---- avatars from nostr ----
+        // A member's picture no longer has to live in this repo: when the
+        // local img is missing (404) or the member only has the 600.png
+        // placeholder, the avatar is placed from their nostr profile -
+        // NIP-05 name -> pubkey (the domain's /.well-known/nostr.json,
+        // ours or a remote one like bol.tz) -> kind 0 from public relays
+        // -> profile picture. The 600 glyph stands in until that lands.
+
+        const AVATAR_RELAYS = ["wss://purplepag.es", "wss://nos.lol", "wss://relay.primal.net"];
+        const GLYPH_AVATAR = "data:image/svg+xml," + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<rect width="100" height="100" fill="#f7931a"/>' +
+            '<text x="50" y="40" font-family="Impact,sans-serif" font-size="24" fill="#fff" text-anchor="middle">600</text>' +
+            '<text x="50" y="66" font-family="Impact,sans-serif" font-size="24" fill="#fff" text-anchor="middle">000</text>' +
+            '<text x="50" y="92" font-family="Impact,sans-serif" font-size="24" fill="#fff" text-anchor="middle">000</text></svg>'
+        );
+
+        // a NIP-05 host that hangs must never starve the whole batch
+        const fetchJson = (url, ms = 5000) =>
+            Promise.race([
+                fetch(url).then(response => response.json()),
+                new Promise((_, reject) => setTimeout(reject, ms))
+            ]).catch(() => null);
+
+        const nip05Docs = {};
+        const nip05Doc = domain => {
+            if (!(domain in nip05Docs)) nip05Docs[domain] = fetchJson(`https://${domain}/.well-known/nostr.json`);
+            return nip05Docs[domain];
+        };
+        // the site's own copy, same-origin: on 600.wtf that IS the real
+        // document, and on a dev server it resolves without any network
+        const ownDoc = fetchJson("/.well-known/nostr.json");
+
+        const lookup = (doc, name) => {
+            const names = (doc && doc.names) || {};
+            // nostr.json keys aren't consistently cased (Bk vs bk) - try both
+            return names[name] || names[name.toLowerCase()] || null;
+        };
+
+        const nip05Pubkey = async nostr => {
+            const [name, domain] = String(nostr || "").split("@");
+            if (!name || !domain) return null;
+            // own document first, remote domain only for actual misses
+            return lookup(await ownDoc, name) || lookup(await nip05Doc(domain), name);
+        };
+
+        // one REQ over a few public relays, newest kind-0 per pubkey wins
+        const fetchProfiles = pubkeys =>
+            new Promise(resolve => {
+                const newest = {};
+                let open = 0;
+                const done = () => { if (--open === 0) resolve(newest); };
+                AVATAR_RELAYS.forEach(url => {
+                    let ws;
+                    try { ws = new WebSocket(url); } catch { return; }
+                    open++;
+                    const finish = () => { try { ws.close(); } catch {} };
+                    ws.onopen = () => ws.send(JSON.stringify(["REQ", "av", { kinds: [0], authors: pubkeys }]));
+                    ws.onmessage = event => {
+                        const msg = JSON.parse(event.data);
+                        if (msg[0] === "EVENT" && msg[2]) {
+                            const ev = msg[2];
+                            if (!newest[ev.pubkey] || ev.created_at > newest[ev.pubkey].created_at) newest[ev.pubkey] = ev;
+                        }
+                        if (msg[0] === "EOSE") finish();
+                    };
+                    ws.onerror = finish;
+                    ws.onclose = done;
+                    setTimeout(finish, 6000);
+                });
+                if (!open) resolve(newest);
+            });
+
+        const placeNostrAvatars = async pending => {
+            const resolved = (
+                await Promise.all(
+                    pending.map(async entry => ({ ...entry, pubkey: await nip05Pubkey(entry.nostr) }))
+                )
+            ).filter(entry => entry.pubkey);
+            if (!resolved.length) return;
+            const profiles = await fetchProfiles(resolved.map(entry => entry.pubkey));
+            resolved.forEach(entry => {
+                try {
+                    const picture = JSON.parse(profiles[entry.pubkey]?.content || "{}").picture;
+                    if (picture) {
+                        // profiles carry dead picture URLs all the time
+                        // (hotlink blocks, expired hosts) - fall back to
+                        // the glyph rather than a broken-image icon
+                        entry.img.onerror = () => {
+                            entry.img.onerror = null;
+                            entry.img.src = GLYPH_AVATAR;
+                        };
+                        entry.img.src = picture;
+                    }
+                } catch { /* profile without usable picture - glyph stays */ }
+            });
+        };
+
+        // ---- render members ----
         fetch('members.json', {
             headers: {
               'Content-Type': 'application/json'
@@ -42,6 +140,8 @@
         }).then(response => {
             response.json().then((json => {
                 let team = document.getElementById("team");
+                // members whose avatar needs placing from their nostr profile
+                let pending = [];
                 json.members.forEach(member => {
                     let div = document.createElement("div");
                     div.className = "team";
@@ -52,7 +152,17 @@
                     a.href = `https://njump.me/${member.nostr}`;
                     a.target = "_blank";
                     a.innerHTML = "nostr";
-                    img.src = member.img;
+                    const placeholder = !member.img || member.img === "img/600.png";
+                    img.src = placeholder ? GLYPH_AVATAR : member.img;
+                    // a local file that 404s (removed art) falls back to the
+                    // glyph and joins the nostr resolution queue too
+                    img.onerror = () => {
+                        img.onerror = null;
+                        img.src = GLYPH_AVATAR;
+                        pending.push({ nostr: member.nostr, img });
+                        placeNostrAvatarsSoon();
+                    };
+                    if (placeholder) pending.push({ nostr: member.nostr, img });
                     headline.innerHTML = member.name;
                     subline.innerHTML = member.role;
                     if (member.nickname) {
@@ -67,6 +177,17 @@
                     div.appendChild(a);
                     team.appendChild(div);
                 });
+                // batch: initial placeholders now, onerror stragglers debounced
+                let timer = null;
+                window.placeNostrAvatarsSoon = () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        const batch = pending;
+                        pending = [];
+                        if (batch.length) placeNostrAvatars(batch);
+                    }, 300);
+                };
+                placeNostrAvatarsSoon();
             }));
         });
 
