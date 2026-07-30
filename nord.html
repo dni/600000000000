@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>600 nord — ordinals on nostr</title>
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <meta name="keywords" value="600 Milliarden, 600000000000, nostr ordinals, LNURLcash, bearer assets">
+    <meta name="description" value="600.000.000.000 nord — ordinals on nostr, charged bearer assets over LNURLcash">
+    <meta name="author" value="600.000.000.000 collective">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="600 nord — ordinals on nostr">
+    <meta property="og:description" content="cards and banknotes, not QR codes">
+    <meta property="og:image" content="https://600.wtf/img/600.png">
+    <style>
+        :root {
+            --n-orange: #f7931a;
+            --n-orange-bright: #ffa733;
+            --n-ember: #ff6a00;
+            --n-gold: #f3c244;
+            --n-soot: #111111;
+            --n-charcoal: #222222;
+            --n-volcanic: #2a1810;
+            --n-paper: #fff7ec;
+        }
+        body.nord {
+            background: linear-gradient(160deg, #1c0f08 0%, #2a1810 55%, #200f0a 100%);
+            color: var(--n-paper);
+            font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 24px 16px 64px;
+            min-height: 100vh;
+        }
+        .nord h1, .nord h2, .nord h3 {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 0 0 8px;
+        }
+        .nord-wrap { max-width: 1080px; margin: 0 auto; }
+        .nord-head { margin-bottom: 24px; }
+        .nord-head h1 { font-size: 2.2em; color: var(--n-orange); }
+        .nord-tag { margin: 0 0 12px; opacity: 0.9; }
+        .nord-links a {
+            color: var(--n-orange);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+            margin-right: 14px;
+        }
+        .nord-links a:hover { text-decoration-style: wavy; }
+        .nord-note { font-size: 0.85em; opacity: 0.65; margin-top: 10px; }
+        .nord button {
+            background: var(--n-orange);
+            color: var(--n-soot);
+            border: none;
+            border-radius: 0;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.95em;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .nord button:hover { background: var(--n-orange-bright); }
+        .nord button:active { transform: scale(0.97); }
+        .nord button.quiet { background: rgba(34, 34, 34, 0.85); color: var(--n-paper); }
+        .nord button.quiet:hover { background: var(--n-orange); color: var(--n-soot); }
+        .nord-cols { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+        @media (max-width: 900px) { .nord-cols { grid-template-columns: 1fr; } }
+        .viewer-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .viewer-total { font-family: Impact, sans-serif; font-size: 1.2em; letter-spacing: 0.04em; }
+        .items { display: flex; flex-wrap: wrap; gap: 18px; }
+        .tcg-card {
+            width: 210px;
+            background: var(--n-soot);
+            border: 1px solid rgba(247, 147, 26, 0.35);
+            padding: 8px;
+            position: relative;
+        }
+        .tcg-card img { display: block; width: 100%; height: 190px; object-fit: cover; }
+        .tcg-card.melted img { filter: grayscale(1) brightness(0.5); }
+        .tcg-card .stamp {
+            position: absolute; top: 84px; left: 0; right: 0;
+            text-align: center;
+            font-family: Impact, sans-serif;
+            font-size: 1.6em;
+            letter-spacing: 0.18em;
+            color: var(--n-ember);
+            transform: rotate(-12deg);
+            display: none;
+        }
+        .tcg-card.melted .stamp { display: block; }
+        .card-name { font-family: Impact, sans-serif; text-transform: uppercase; letter-spacing: 0.04em; margin: 8px 0 2px; }
+        .card-meta { font-size: 0.78em; opacity: 0.75; display: flex; justify-content: space-between; }
+        .affinity {
+            background: var(--n-orange); color: var(--n-soot);
+            font-family: Impact, sans-serif; letter-spacing: 0.12em;
+            padding: 0 6px;
+        }
+        .charge { color: var(--n-gold); }
+        .card-x { font-family: Consolas, monospace; font-size: 0.62em; opacity: 0.45; overflow-wrap: anywhere; margin: 6px 0; }
+        .banknote {
+            width: 210px;
+            background:
+                repeating-linear-gradient(45deg, rgba(247, 147, 26, 0.09) 0 6px, transparent 6px 12px),
+                linear-gradient(120deg, #241309, #2f1c0e);
+            border: 1px solid rgba(243, 194, 68, 0.45);
+            padding: 12px 8px;
+            position: relative;
+        }
+        .banknote.selected { outline: 2px solid var(--n-gold); }
+        .note-denom { font-family: Impact, sans-serif; font-size: 1.9em; color: var(--n-gold); letter-spacing: 0.04em; }
+        .note-series { font-size: 0.7em; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.7; margin: 4px 0 8px; }
+        .note-glyph { position: absolute; top: 10px; right: 10px; font-family: Impact, sans-serif; line-height: 0.9; font-size: 0.6em; color: var(--n-orange); text-align: center; opacity: 0.8; }
+        .item-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .item-actions button { font-size: 0.75em; padding: 4px 10px; }
+        .chain {
+            background: rgba(17, 17, 17, 0.75);
+            border-left: 3px solid var(--n-orange);
+            padding: 12px;
+            max-height: 640px;
+            overflow-y: auto;
+        }
+        .chain h2 { color: var(--n-orange); font-size: 1.1em; }
+        .chain-hint { font-size: 0.8em; opacity: 0.65; margin: 0 0 10px; }
+        .evt { border-bottom: 1px solid rgba(255, 247, 236, 0.12); padding: 8px 0; }
+        .evt-kind {
+            display: inline-block;
+            font-family: Impact, sans-serif;
+            letter-spacing: 0.14em;
+            font-size: 0.72em;
+            padding: 1px 6px;
+            background: var(--n-orange);
+            color: var(--n-soot);
+            margin-bottom: 4px;
+        }
+        .evt-kind.k7603 { background: var(--n-ember); }
+        .evt-kind.k7601 { background: var(--n-gold); }
+        .evt pre {
+            font-family: Consolas, monospace;
+            font-size: 0.68em;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            margin: 0;
+            color: var(--n-paper);
+            background: none;
+            opacity: 0.85;
+        }
+        dialog.contact-picker {
+            background: var(--n-volcanic);
+            color: var(--n-paper);
+            border: 1px solid var(--n-orange);
+            padding: 18px;
+            max-width: 360px;
+        }
+        dialog.contact-picker::backdrop { background: rgba(0, 0, 0, 0.6); }
+        .contact { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 6px; text-align: left; }
+        .contact img { width: 34px; height: 34px; object-fit: cover; border-radius: 50%; }
+        .toast {
+            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+            background: var(--n-orange); color: var(--n-soot);
+            font-family: Impact, sans-serif; letter-spacing: 0.04em; text-transform: uppercase;
+            padding: 8px 18px; display: none; z-index: 9;
+        }
+    </style>
+</head>
+<body class="nord">
+    <div class="nord-wrap">
+        <header class="nord-head">
+            <h1>Nord — ordinals on nostr</h1>
+            <p class="nord-tag">Charged bearer assets over LNURLcash. Cards and banknotes, not QR codes.</p>
+            <p class="nord-links">
+                <a href="https://github.com/BIMbeamFLX/nostr-ordinals" target="_blank" rel="noopener">NORD specs</a>
+                <a href="https://github.com/dni/lnurl-wallet/pull/2" target="_blank" rel="noopener">wallet groundwork</a>
+                <a href="ordinals.html">onchain ordinals</a>
+                <a href="index.html">home</a>
+            </p>
+            <p class="nord-note" id="mode-note">
+                Demo mint runs in this page: real secrets, real hashes, real event
+                structure - signatures stubbed, nothing leaves your browser. Set
+                <code>MINT_URL</code> to a deployed LUD-XX mint to go live (phase 2).
+            </p>
+        </header>
+        <div class="nord-cols">
+            <section>
+                <div class="viewer-bar">
+                    <button id="booster">Open booster · 21 000 sats</button>
+                    <button id="combine" class="quiet" hidden>Combine selected</button>
+                    <span class="viewer-total" id="total">0 SATS HELD</span>
+                </div>
+                <div class="items" id="items"></div>
+            </section>
+            <aside class="chain">
+                <h2>Asset chains</h2>
+                <p class="chain-hint">
+                    NORD-01 events, newest first. Genesis 7600 / transfer 7601 /
+                    melt 7603. Event ids are real sha256 over the nostr
+                    serialization; artwork ids are the sha256 of the actual bytes
+                    (content-addressed, Blossom-style).
+                </p>
+                <div id="events"></div>
+            </aside>
+        </div>
+    </div>
+    <dialog class="contact-picker" id="picker">
+        <h3>Send over nostr</h3>
+        <p class="chain-hint">NIP-59 gift wrap, kind 7604 - the note travels encrypted, the chain records custody.</p>
+        <div id="contacts"></div>
+        <button class="quiet" id="picker-cancel">Cancel</button>
+    </dialog>
+    <div class="toast" id="toast"></div>
+    <script>
+        // Live mode: point this at a deployed LUD-XX LNURLcash mint that
+        // implements the NORD-02 asset extension, and the booster button
+        // mints real notes instead of demo ones. null = in-page demo mint.
+        const MINT_URL = null;
+
+        // demo mint identity - a real mint signs events with x(mintPubkey)
+        // (NORD-01); this page stubs signatures and says so on every event
+        const MINT_PUBKEY = '600b'.repeat(16);
+        const BOOSTER_MSAT = 21000000;
+        const CARD_MSAT = 6000000;
+        const AFFINITIES = ['P', 'B', 'K', 'S', 'T'];
+
+        const state = { items: [], events: [], deck: [], serial: 0 };
+
+        const sha256hex = async bytes => {
+            const digest = await crypto.subtle.digest('SHA-256', bytes);
+            return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+        };
+        const randomHex = n =>
+            [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, '0')).join('');
+        const sats = msat => (msat / 1000).toLocaleString('en-US').replace(/,/g, ' ');
+
+        // nostr event id = sha256 of the canonical serialization (NIP-01);
+        // computed for real so the chain panel shows honest ids
+        const nostrEvent = async (kind, tags, content) => {
+            const created_at = Math.floor(Date.now() / 1000);
+            const serial = JSON.stringify([0, MINT_PUBKEY, created_at, kind, tags, content]);
+            const id = await sha256hex(new TextEncoder().encode(serial));
+            return { id, pubkey: MINT_PUBKEY, created_at, kind, tags, content, sig: 'demo-unsigned' };
+        };
+
+        const pushEvent = evt => {
+            state.events.unshift(evt);
+            const box = document.getElementById('events');
+            const div = document.createElement('div');
+            div.className = 'evt';
+            const label = { 7600: 'GENESIS 7600', 7601: 'TRANSFER 7601', 7603: 'MELT 7603' }[evt.kind];
+            const short = { ...evt, id: evt.id.slice(0, 16) + '…', pubkey: evt.pubkey.slice(0, 8) + '…' };
+            short.tags = evt.tags.map(t => t.map(v => (v.length > 20 ? v.slice(0, 16) + '…' : v)));
+            div.innerHTML = `<span class="evt-kind k${evt.kind}">${label}</span><pre>${JSON.stringify(short, null, 1)}</pre>`;
+            box.prepend(div);
+        };
+
+        const toast = msg => {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.display = 'block';
+            clearTimeout(el._t);
+            el._t = setTimeout(() => (el.style.display = 'none'), 2600);
+        };
+
+        const total = () => {
+            const msat = state.items.filter(i => i.status === 'held').reduce((s, i) => s + i.valueMsat, 0);
+            document.getElementById('total').textContent = `${sats(msat)} SATS HELD`;
+        };
+
+        // the council deck: every 600B operator is a card, art hashed from
+        // the actual bytes it ships with - content addressing without a server
+        const loadDeck = async () => {
+            const res = await fetch('members.json');
+            const json = await res.json();
+            state.deck = await Promise.all(
+                json.members.map(async (m, i) => {
+                    let x = 'unavailable';
+                    try {
+                        const img = await fetch(m.img);
+                        x = await sha256hex(await img.arrayBuffer());
+                    } catch (e) { /* file:// or missing art - keep the card, mark the hash */ }
+                    return {
+                        name: m.name,
+                        role: m.role,
+                        img: m.img,
+                        x,
+                        affinity: AFFINITIES[i % AFFINITIES.length]
+                    };
+                })
+            );
+        };
+
+        const mintCard = async tpl => {
+            state.serial += 1;
+            const k1 = randomHex(32);
+            const birth = await sha256hex(new TextEncoder().encode(k1));
+            const number = String(state.serial).padStart(3, '0');
+            const genesis = await nostrEvent(
+                7600,
+                [
+                    ['x', tpl.x],
+                    ['url', tpl.img],
+                    ['birth', birth],
+                    ['amount', String(CARD_MSAT)],
+                    ['lnurl', 'lnurlw://mint.600.wtf/w'],
+                    ['t', '600b']
+                ],
+                JSON.stringify({ name: tpl.name, set: 'COUNCIL E0', number, affinity: tpl.affinity, role: tpl.role })
+            );
+            pushEvent(genesis);
+            state.items.push({
+                id: genesis.id, kind: 'card', k1, valueMsat: CARD_MSAT,
+                asset: { ...tpl, number }, status: 'held', selected: false
+            });
+        };
+
+        const openBooster = async () => {
+            if (MINT_URL) { toast('Live mint not wired yet'); return; }
+            if (!state.deck.length) await loadDeck();
+            const picks = [...state.deck].sort(() => Math.random() - 0.5).slice(0, 3);
+            for (const tpl of picks) await mintCard(tpl);
+            state.items.push({
+                id: randomHex(8), kind: 'note', k1: randomHex(32),
+                valueMsat: BOOSTER_MSAT - 3 * CARD_MSAT, status: 'held', selected: false
+            });
+            render();
+            toast('Booster opened - 3 cards, change as a banknote');
+        };
+
+        const meltItem = async item => {
+            item.status = 'melted';
+            if (item.kind === 'card') {
+                pushEvent(await nostrEvent(7603, [
+                    ['e', item.id, 'wss://relay.600.wtf', 'genesis'],
+                    ['e', state.events[0]?.id || item.id, 'wss://relay.600.wtf', 'prev']
+                ], ''));
+                state.items.push({
+                    id: randomHex(8), kind: 'note', k1: randomHex(32),
+                    valueMsat: item.valueMsat, status: 'held', selected: false
+                });
+                toast('Card melted - its charge is a banknote now');
+            } else {
+                state.items = state.items.filter(i => i !== item);
+                toast('Note melted');
+            }
+            render();
+        };
+
+        let sendTarget = null;
+        const openPicker = item => {
+            sendTarget = item;
+            const box = document.getElementById('contacts');
+            box.innerHTML = '';
+            state.deck.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'contact quiet';
+                btn.innerHTML = `<img src="${m.img}" alt=""><span>${m.name} · ${m.role}</span>`;
+                btn.onclick = () => sendItem(m);
+                box.appendChild(btn);
+            });
+            document.getElementById('picker').showModal();
+        };
+
+        const sendItem = async contact => {
+            const item = sendTarget;
+            document.getElementById('picker').close();
+            if (!item) return;
+            item.status = 'sent';
+            if (item.kind === 'card') {
+                pushEvent(await nostrEvent(7601, [
+                    ['e', item.id, 'wss://relay.600.wtf', 'genesis'],
+                    ['e', state.events[0]?.id || item.id, 'wss://relay.600.wtf', 'prev'],
+                    ['p', 'npub-' + contact.name]
+                ], ''));
+            }
+            render();
+            toast(`Gift-wrapped to ${contact.name} - kind 7604, no QR involved`);
+        };
+
+        const combine = () => {
+            const picked = state.items.filter(i => i.kind === 'note' && i.selected && i.status === 'held');
+            if (picked.length < 2) return;
+            const sum = picked.reduce((s, i) => s + i.valueMsat, 0);
+            state.items = state.items.filter(i => !picked.includes(i));
+            state.items.push({
+                id: randomHex(8), kind: 'note', k1: randomHex(32),
+                valueMsat: sum, status: 'held', selected: false
+            });
+            render();
+            toast('Merged - one note, same sats, fresh secret');
+        };
+
+        const render = () => {
+            const box = document.getElementById('items');
+            box.innerHTML = '';
+            state.items.filter(i => i.status !== 'sent').forEach(item => {
+                if (item.kind === 'card') {
+                    const el = document.createElement('div');
+                    el.className = 'tcg-card' + (item.status === 'melted' ? ' melted' : '');
+                    el.innerHTML = `
+                        <img src="${item.asset.img}" alt="">
+                        <div class="stamp">MELTED</div>
+                        <div class="card-name">${item.asset.name}</div>
+                        <div class="card-meta">
+                            <span class="affinity">${item.asset.affinity}</span>
+                            <span>COUNCIL E0 · ${item.asset.number}</span>
+                            <span class="charge">${item.status === 'melted' ? '0' : sats(item.valueMsat)} sats</span>
+                        </div>
+                        <div class="card-x" title="sha256 of the artwork bytes">x: ${item.asset.x.slice(0, 24)}…</div>`;
+                    if (item.status === 'held') {
+                        const actions = document.createElement('div');
+                        actions.className = 'item-actions';
+                        const send = document.createElement('button');
+                        send.textContent = 'Send';
+                        send.onclick = () => openPicker(item);
+                        const melt = document.createElement('button');
+                        melt.className = 'quiet';
+                        melt.textContent = 'Melt';
+                        melt.onclick = () => meltItem(item);
+                        actions.append(send, melt);
+                        el.appendChild(actions);
+                    }
+                    box.appendChild(el);
+                } else {
+                    const el = document.createElement('div');
+                    el.className = 'banknote' + (item.selected ? ' selected' : '');
+                    el.innerHTML = `
+                        <div class="note-glyph">600<br>000<br>000<br>000</div>
+                        <div class="note-denom">${sats(item.valueMsat)}</div>
+                        <div class="note-series">SATS · 600B SERIES E0 · BEARER</div>`;
+                    el.onclick = e => {
+                        if (e.target.tagName === 'BUTTON') return;
+                        item.selected = !item.selected;
+                        render();
+                    };
+                    const actions = document.createElement('div');
+                    actions.className = 'item-actions';
+                    const send = document.createElement('button');
+                    send.textContent = 'Send';
+                    send.onclick = () => openPicker(item);
+                    const melt = document.createElement('button');
+                    melt.className = 'quiet';
+                    melt.textContent = 'Melt';
+                    melt.onclick = () => meltItem(item);
+                    actions.append(send, melt);
+                    el.appendChild(actions);
+                    box.appendChild(el);
+                }
+            });
+            document.getElementById('combine').hidden =
+                state.items.filter(i => i.kind === 'note' && i.selected && i.status === 'held').length < 2;
+            total();
+        };
+
+        document.getElementById('booster').onclick = openBooster;
+        document.getElementById('combine').onclick = combine;
+        document.getElementById('picker-cancel').onclick = () => document.getElementById('picker').close();
+        loadDeck().then(render);
+    </script>
+</body>
+</html>
