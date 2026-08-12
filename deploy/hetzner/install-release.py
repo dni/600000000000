@@ -24,6 +24,7 @@ PUBLIC_ROOT_FILES = {
     "index.html",
     "inscriptions.html",
     "liquid.html",
+    "lore.html",
     "matrix.html",
     "members.json",
     "onchain.html",

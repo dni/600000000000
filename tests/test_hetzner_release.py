@@ -31,6 +31,7 @@ PUBLIC_ROOT_FILES = {
     "index.html",
     "inscriptions.html",
     "liquid.html",
+    "lore.html",
     "matrix.html",
     "members.json",
     "onchain.html",
@@ -93,6 +94,7 @@ class HetznerReleaseTests(unittest.TestCase):
                 self.assertIn("RELEASE.json", names)
                 self.assertIn(".well-known/nostr.json", names)
                 self.assertIn("index.html", names)
+                self.assertIn("lore.html", names)
                 self.assertIn("members.json", names)
                 self.assertNotIn("Dockerfile", names)
                 self.assertFalse(any(name.startswith((".git/", "deploy/", "docs/", "tests/")) for name in names))

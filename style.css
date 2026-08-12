@@ -1090,6 +1090,136 @@ iframe {
     }
 }
 
+/* Living 600 lore */
+body.lore-page {
+    background: #111;
+    color: #f5efe5;
+    text-align: left;
+}
+
+.lore-shell {
+    width: min(820px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 28px 0 96px;
+}
+
+.lore-back,
+.lore-back:visited {
+    display: inline-block;
+    color: #f7931a;
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.lore-header {
+    padding: 14vh 0 10vh;
+    border-bottom: 4px solid #f7931a;
+}
+
+.lore-page .lore-kicker {
+    margin-bottom: 20px;
+    color: #f7931a;
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(18px, 3vw, 26px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.lore-page .lore-header h1 {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    font-size: clamp(76px, 18vw, 164px);
+    line-height: 0.82;
+    text-align: left;
+    word-spacing: normal;
+}
+
+.lore-page .lore-lead {
+    max-width: 690px;
+    margin: 34px 0 0;
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(30px, 6vw, 54px);
+    line-height: 1.02;
+}
+
+.lore-story section {
+    margin: 0;
+    padding: 76px 0;
+    border-bottom: 1px solid rgba(247, 147, 26, 0.45);
+}
+
+.lore-story h2 {
+    margin-bottom: 28px;
+    color: #f7931a;
+    font-size: clamp(32px, 6vw, 54px);
+}
+
+.lore-story p {
+    max-width: 750px;
+    margin-bottom: 22px;
+    font-size: clamp(19px, 2.4vw, 23px);
+    line-height: 1.65;
+}
+
+.lore-story a,
+.lore-story a:visited {
+    color: #f7931a;
+}
+
+.lore-story blockquote {
+    margin: 54px 0;
+    padding: 24px 0 24px 30px;
+    border-left: 8px solid #f7931a;
+    color: #fff;
+    font-family: 'Alfa Slab One', serif;
+    font-size: clamp(38px, 8vw, 78px);
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.lore-page .lore-close {
+    border-bottom: 0;
+}
+
+.lore-page .lore-program {
+    margin-top: 52px;
+    color: #f7931a;
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(28px, 5vw, 46px);
+    text-transform: uppercase;
+}
+
+.lore-page .lore-final {
+    margin-top: 70px;
+    color: #fff;
+    font-family: 'Alfa Slab One', serif;
+    font-size: clamp(54px, 13vw, 116px);
+    line-height: 0.9;
+}
+
+@media (max-width: 600px) {
+    .lore-shell {
+        width: min(100% - 28px, 820px);
+        padding-top: 18px;
+    }
+
+    .lore-header {
+        padding: 11vh 0 8vh;
+    }
+
+    .lore-story section {
+        padding: 54px 0;
+    }
+
+    .lore-story blockquote {
+        padding-left: 18px;
+        border-left-width: 5px;
+    }
+}
+
 @media print {
     body.business-card-page {
         background: #fff;

@@ -12,7 +12,7 @@ Caddy sees that directory as `/srv/site/600-wtf`. `Caddyfile.fragment` is a revi
 
 The archive contains only the explicit public allowlist:
 
-- public root HTML/CSS/JSON/image files;
+- public root HTML/CSS/JSON/image files, including `lore.html`;
 - `.well-known/`;
 - `blocks/`, `img/`, `inscriptions/`, and `vendor/`;
 - generated `RELEASE.json` with the source commit and SHA-256 of every retained file.

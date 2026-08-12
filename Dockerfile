@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-COPY ["404.html", "business-cards.html", "favicon.ico", "index.html", "inscriptions.html", "liquid.html", "matrix.html", "members.json", "onchain.html", "ord.html", "ordinals.html", "qrcode-sticker.svg", "signal.html", "sticker.html", "style.css", "/usr/share/nginx/html/"]
+COPY ["404.html", "business-cards.html", "favicon.ico", "index.html", "inscriptions.html", "liquid.html", "lore.html", "matrix.html", "members.json", "onchain.html", "ord.html", "ordinals.html", "qrcode-sticker.svg", "signal.html", "sticker.html", "style.css", "/usr/share/nginx/html/"]
 COPY .well-known /usr/share/nginx/html/.well-known
 COPY blocks /usr/share/nginx/html/blocks
 COPY img /usr/share/nginx/html/img
