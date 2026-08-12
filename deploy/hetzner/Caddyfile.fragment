@@ -1,0 +1,23 @@
+600.wtf {
+        root * /srv/site/600-wtf
+        encode zstd gzip
+
+        @private path /RELEASE.json
+        respond @private 404
+
+        @well_known path /.well-known/*
+        header @well_known Access-Control-Allow-Origin "*"
+        header /.well-known/nostr.json Content-Type "application/json; charset=utf-8"
+        header @well_known Cache-Control "no-cache"
+
+        @assets path /img/* /blocks/* /inscriptions/* /vendor/* /favicon.ico /qrcode-sticker.svg
+        header @assets Cache-Control "public, max-age=604800"
+
+        header {
+                X-Content-Type-Options "nosniff"
+                Referrer-Policy "strict-origin-when-cross-origin"
+                Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+        }
+
+        file_server
+}
